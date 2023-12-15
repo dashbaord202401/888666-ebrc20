@@ -7,7 +7,7 @@ import {ERC20} from "solady/tokens/ERC20.sol";
  * @title  EBRC20
  * @author emo.eth
  * @notice A simple ERC20 token inspired by the "fair mint" BRC20 model, where
- *         anyone can mint tokens for free until maxmum supply is reached by
+ *         anyone can mint tokens for free until maximum supply is reached by
  *         simply submitting a transaction.
  */
 contract EBRC20 is ERC20 {
