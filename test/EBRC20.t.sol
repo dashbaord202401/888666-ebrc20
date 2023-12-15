@@ -50,9 +50,15 @@ contract EBRC20Test is Test {
         assertEq(token.totalSupply(), token.MAX_SUPPLY());
     }
 
-    // function testClaim_optimized() public {
-    //     token.claim2981390163();
-    //     assertEq(token.totalSupply(), 10 * 10 ** 18);
-    //     assertEq(token.balanceOf(address(this)), 10 * 10 ** 18);
-    // }
+    function testClaim_onlyEOA() public {
+        token = new EBRC20("Test", "TEST", 100, 10, true);
+        vm.expectRevert(EBRC20.OnlyEOA.selector);
+        token.claim();
+    }
+
+    function testClaim_optimized() public {
+        token.claim2981390163();
+        assertEq(token.totalSupply(), 10 * 10 ** 18);
+        assertEq(token.balanceOf(address(this)), 10 * 10 ** 18);
+    }
 }

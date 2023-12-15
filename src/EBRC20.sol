@@ -11,12 +11,21 @@ import {ERC20} from "solady/tokens/ERC20.sol";
  *         simply submitting a transaction.
  */
 contract EBRC20 is ERC20 {
-    string _name;
-    string _symbol;
+    /// @notice The maximum supply of the token, scaled by decimals()
     uint256 public immutable MAX_SUPPLY;
+    /// @notice The amount of tokens that can be claimed by each address, scaled
+    ///         by decimals()
     uint256 public immutable CLAIM_AMOUNT;
+    /// @notice Whether or not this token restricts claiming to EOA addresses
     bool public immutable ONLY_EOA;
-    mapping(address claimer => bool claimed) claimed;
+
+    /// @notice A mapping tracking whether or not an address has claimed tokens
+    mapping(address claimer => bool claimed) public claimed;
+
+    /// @dev Token name
+    string _name;
+    /// @dev Token symbol
+    string _symbol;
 
     /**
      * @notice Raised on construction when the maxSupply param is not a multiple
@@ -57,7 +66,7 @@ contract EBRC20 is ERC20 {
      *                    Only supports whole numbers.
      * @param onlyEoa Whether or not to restrict claiming from EOA addresses
      */
-    constructor(string memory name_, string memory symbol_, uint256 maxSupply, uint256 claimAmount, bool onlyEoa) {
+    constructor(string memory name_, string memory symbol_, uint128 maxSupply, uint128 claimAmount, bool onlyEoa) {
         _name = name_;
         _symbol = symbol_;
         MAX_SUPPLY = maxSupply * 10 ** decimals();
@@ -69,14 +78,14 @@ contract EBRC20 is ERC20 {
     }
 
     /**
-     * @inheritdoc ERC20
+     * @notice The name of the token
      */
     function name() public view override returns (string memory) {
         return _name;
     }
 
     /**
-     * @inheritdoc ERC20
+     * @notice The symbol of the token
      */
     function symbol() public view override returns (string memory) {
         return _symbol;
@@ -92,14 +101,14 @@ contract EBRC20 is ERC20 {
         // several seeded wallets. On optimistic L2s, however, the latter will
         // be much more expensive to actually execute, given that each discrete
         // TX incurs more expensive L1 fees.
-        if (msg.sender != tx.origin) {
+        if (ONLY_EOA && msg.sender != tx.origin) {
             revert OnlyEOA();
         }
 
-        /// @dev NOTE: This check will fail if the contract is extended to add
-        /// a burn() function that uses the inherited internal _burn() function,
-        /// since that function updates totalSupply as part of burning.
         // Check that claiming this amount won't exceed the max supply
+        /// @dev NOTE: This check will fail if the contract is extended to add
+        /// a public burn function that uses the inherited internal _burn()
+        /// function, since that function updates totalSupply as part of burning.
         if (totalSupply() + CLAIM_AMOUNT > MAX_SUPPLY) {
             revert MaxSupplyReached();
         }
@@ -116,13 +125,13 @@ contract EBRC20 is ERC20 {
         _mint(msg.sender, CLAIM_AMOUNT);
     }
 
-    // /**
-    //  * @notice Claim CLAIM_AMOUNT tokens for msg.sender. Can only be called once
-    //  *         per address.
-    //  * @dev This function is optimized to use less gas than `claim()`, as its
-    //  *      selector is 0x00000000
-    //  */
-    // function claim2981390163() public {
-    //     claim();
-    // }
+    /**
+     * @notice Claim CLAIM_AMOUNT tokens for msg.sender. Can only be called once
+     *         per address.
+     * @dev This function is optimized to use less gas than `claim()`, as its
+     *      selector is 0x00000000
+     */
+    function claim2981390163() public {
+        claim();
+    }
 }
