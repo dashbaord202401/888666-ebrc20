@@ -2,11 +2,13 @@
 pragma solidity ^0.8.17;
 
 import {Test} from "forge-std/Test.sol";
-import {LinearEBRC20, LinearEBRC20Params} from "src/LinearEBRC20.sol";
+import {LinearEBRC20, LinearEBRC20ConstructorParams} from "src/LinearEBRC20.sol";
 import {toWadUnsafe, wadLn} from "solmate/utils/SignedWadMath.sol";
 
+import {LinearEBRC20ConstructorParams} from "../src/Structs.sol";
+
 contract WeirdLinearEBRC20 is LinearEBRC20 {
-    constructor(LinearEBRC20Params memory params) LinearEBRC20(params) {}
+    constructor(LinearEBRC20ConstructorParams memory params) LinearEBRC20(params) {}
 
     function forceMint(uint256 amount) public {
         _mint(msg.sender, amount);
@@ -19,7 +21,7 @@ contract LinearEBRC20Test is Test {
     function setUp() public {
         vm.warp(1);
         token = new LinearEBRC20(
-            LinearEBRC20Params({
+            LinearEBRC20ConstructorParams({
                 name: "Test",
                 symbol: "TEST",
                 maxSupply: 1e9,
@@ -81,7 +83,7 @@ contract LinearEBRC20Test is Test {
 
     function testClaim_onlyEOA() public {
         token = new LinearEBRC20(
-            LinearEBRC20Params({
+            LinearEBRC20ConstructorParams({
                 name: "Test",
                 symbol: "TEST",
                 maxSupply: 1e9,
@@ -99,7 +101,7 @@ contract LinearEBRC20Test is Test {
 
     function testClaim_ClaimNotStarted() public {
         token = new LinearEBRC20(
-            LinearEBRC20Params({
+            LinearEBRC20ConstructorParams({
                 name: "Test",
                 symbol: "TEST",
                 maxSupply: 1e9,
@@ -122,7 +124,7 @@ contract LinearEBRC20Test is Test {
 
     function testWeird() public {
         WeirdLinearEBRC20 weirdToken = new WeirdLinearEBRC20(
-            LinearEBRC20Params({
+            LinearEBRC20ConstructorParams({
                 name: "Test",
                 symbol: "TEST",
                 maxSupply: 1e9,

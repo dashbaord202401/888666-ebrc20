@@ -4,21 +4,10 @@ pragma solidity ^0.8.17;
 import {ERC20} from "solady/tokens/ERC20.sol";
 import {LinearVRGDA} from "vrgdas/LinearVRGDA.sol";
 import {toWadUnsafe, unsafeWadMul} from "solmate/utils/SignedWadMath.sol";
-
-struct LinearEBRC20Params {
-    string name;
-    string symbol;
-    uint128 maxSupply;
-    bool onlyEoa;
-    uint256 startTime;
-    uint256 duration;
-    uint256 blockTime;
-    int256 decayConstantPerTimeUnit;
-    uint256 timeUnit;
-}
+import {LinearEBRC20ConstructorParams} from "./Structs.sol";
 
 /**
- * @title  EBRC20
+ * @title  LinearEBRC20
  * @author emo.eth
  * @notice An ERC20 token inspired by the "fair mint" BRC20 model, where
  *         anyone can mint tokens for free until maximum supply is reached by
@@ -28,6 +17,7 @@ struct LinearEBRC20Params {
  *         lasts approximately a set amount of time, without wasting blockspace
  *         or gas to keep redemption rate on track to reach max supply.
  */
+
 contract LinearEBRC20 is ERC20, LinearVRGDA {
     /// @notice The maximum supply of the token, scaled by decimals()
     uint256 public immutable MAX_SUPPLY;
@@ -95,7 +85,7 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
      */
     error ClaimNotStarted();
 
-    constructor(LinearEBRC20Params memory params)
+    constructor(LinearEBRC20ConstructorParams memory params)
         LinearVRGDA(
             toWadUnsafe(1),
             params.decayConstantPerTimeUnit,
