@@ -37,7 +37,7 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
 
     /// @notice The time the claim starts
     uint256 public immutable START_TIME;
-    /// @notice The ideal end time for the clai period.. Actual end time depends
+    /// @notice The ideal end time for the claim period. Actual end time depends
     ///         on rate of claims.
     uint256 public immutable TARGET_END_TIME;
     /// @notice The ideal duration of the claim period. Actual duration depends
@@ -104,6 +104,8 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
     {
         _name = params.name;
         _symbol = params.symbol;
+        /// note: a large, custom number of decimals combined with a large supply
+        /// could lead to overflows down the line
         MAX_SUPPLY = params.maxSupply * 10 ** decimals();
         ONLY_EOA = params.onlyEoa;
         START_TIME = params.startTime;
@@ -112,13 +114,6 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
         TARGET_WAD_TOKENS_PER_BLOCK = uint256(toWadUnsafe(MAX_SUPPLY * params.blockTime / TARGET_DURATION)); // op stack blocktime is 2
         TIME_UNIT_SECONDS = params.timeUnit;
         BLOCK_TIME_SECONDS = params.blockTime;
-    }
-
-    function toTimeUnitWadUnsafe(uint256 x) internal view returns (int256 r) {
-        uint256 timeUnit = TIME_UNIT_SECONDS;
-        assembly {
-            r := div(mul(x, 1000000000000000000), timeUnit)
-        }
     }
 
     /**
@@ -144,10 +139,11 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
         // claim contracts, but won't prevent someone running a script with
         // several seeded wallets. On optimistic L2s, however, the latter will
         // be much more expensive to actually execute, given that each discrete
-        // TX incurs more expensive L1 fees.
+        // TX incurs more expensive L1 fees
         if (ONLY_EOA && msg.sender != tx.origin) {
             revert OnlyEOA();
         }
+        // Check that claim period has started
         if (block.timestamp < START_TIME) {
             revert ClaimNotStarted();
         }
@@ -176,7 +172,8 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
             claimQuotient = type(uint256).max;
         } else {
             // Calculate the amount of tokens to mint
-            // instead of using VRGDA formula for price, use it to calculate the amount of tokens to mint
+            // instead of using VRGDA formula for price, use it to calculate the quotient by which to divide
+            // TARGET_WAD_TOKENS_PER_BLOCK
             // eg, 0.5e18 = "2x amount", 1e18 = "normal amount", 2e18 = "1/2 amount", 5e18 = "1/5 amount", etc
             claimQuotient = getVRGDAPrice(timeUnitsSinceStart(), currentSupply);
         }
@@ -184,7 +181,7 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
         claimQuotient = (claimQuotient == 0) ? 1 : claimQuotient;
         uint256 amount = uint256(((TARGET_WAD_TOKENS_PER_BLOCK))) / claimQuotient;
 
-        // Check that claiming this amount won't exceed the max supply
+        // check that claiming this amount won't exceed the max supply
         if (amount + currentSupply > MAX_SUPPLY) {
             uint256 remaining = MAX_SUPPLY - currentSupply;
             if (remaining > 0) {
@@ -195,16 +192,12 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
         }
 
         if (amount > 0) {
-            // Update claim mapping
+            // update claim mapping
             claimed[msg.sender] = true;
 
-            // Mint tokens to msg.sender
+            // mint tokens to msg.sender
             _mint(msg.sender, amount);
         }
-    }
-
-    function timeUnitsSinceStart() internal view returns (int256) {
-        return toTimeUnitWadUnsafe(block.timestamp - START_TIME);
     }
 
     /**
@@ -215,5 +208,23 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
      */
     function claim2981390163() public {
         claim();
+    }
+
+    /**
+     * @dev Covert seconds to wad time units
+     * @param secs Number of seconds to convert into wad time units
+     */
+    function toTimeUnitWadUnsafe(uint256 secs) internal view returns (int256 r) {
+        uint256 timeUnit = TIME_UNIT_SECONDS;
+        assembly {
+            r := div(mul(secs, 1000000000000000000), timeUnit)
+        }
+    }
+
+    /**
+     * @dev Get the wad number of time units elapsed since START_TIME
+     */
+    function timeUnitsSinceStart() internal view returns (int256) {
+        return toTimeUnitWadUnsafe(block.timestamp - START_TIME);
     }
 }
