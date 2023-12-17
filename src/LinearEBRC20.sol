@@ -38,6 +38,7 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
      * @notice Raised on claim when the max supply has been reached
      */
     error MaxSupplyReached();
+
     /**
      * @notice Raised on claim when the address has already claimed
      */
