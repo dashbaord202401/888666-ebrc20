@@ -1,7 +1,13 @@
 [profile.default]
+solc_version = '0.8.22'
 src = "src"
 out = "out"
 libs = ["lib"]
-remappings = ['solady/=lib/solady/src/']
-
+remappings = [
+    'solady/=lib/solady/src/',
+    'vrgdas/=lib/vrgdas/src/',
+    'solmate/=lib/solmate/src/',
+]
+optimizer = true
+optimizer_runs = 9_999_999
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
