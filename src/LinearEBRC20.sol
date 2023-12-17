@@ -17,7 +17,6 @@ import {LinearEBRC20ConstructorParams} from "./Structs.sol";
  *         lasts approximately a set amount of time, without wasting blockspace
  *         or gas to keep redemption rate on track to reach max supply.
  */
-
 contract LinearEBRC20 is ERC20, LinearVRGDA {
     /// @notice The maximum supply of the token, scaled by decimals()
     uint256 public immutable MAX_SUPPLY;
