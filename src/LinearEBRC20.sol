@@ -18,37 +18,6 @@ import {LinearEBRC20ConstructorParams} from "./Structs.sol";
  *         or gas to keep redemption rate on track to reach max supply.
  */
 contract LinearEBRC20 is ERC20, LinearVRGDA {
-    /// @notice The maximum supply of the token, scaled by decimals()
-    uint256 public immutable MAX_SUPPLY;
-
-    /// @notice Whether or not this token restricts claiming to EOA addresses
-    bool public immutable ONLY_EOA;
-
-    /// @notice The time the claim starts
-    uint256 public immutable START_TIME;
-    /// @notice The ideal end time for the claim period. Actual end time depends
-    ///         on rate of claims.
-    uint256 public immutable TARGET_END_TIME;
-    /// @notice The ideal duration of the claim period. Actual duration depends
-    ///         on the rate of claims.
-    uint256 public immutable TARGET_DURATION;
-    /// @notice The number of seconds that comprise a discrete "time period"
-    ///         according to the VRGDA algorithm.
-    uint256 public immutable TIME_UNIT_SECONDS;
-    /// @notice The number of seconds used to calculate the TARGET_WAD_TOKENS_PER_BLOCK
-    uint256 public immutable BLOCK_TIME_SECONDS;
-    /// @dev The ideal number of tokens that should be claimed per block, if
-    ///      claims are constant according to issuance schedule. Scaled by 1e18.
-    uint256 public immutable TARGET_WAD_TOKENS_PER_BLOCK;
-
-    /// @notice A mapping tracking whether or not an address has claimed tokens
-    mapping(address claimer => bool claimed) public claimed;
-
-    /// @dev Token name
-    string _name;
-    /// @dev Token symbol
-    string _symbol;
-
     /**
      * @notice Raised on construction when the maxSupply param is not a multiple
      *         of the claimAmount param.
@@ -83,6 +52,34 @@ contract LinearEBRC20 is ERC20, LinearVRGDA {
      * @notice Raised on claim when the claim period has not started
      */
     error ClaimNotStarted();
+
+    /// @notice The maximum supply of the token, scaled by decimals()
+    uint256 public immutable MAX_SUPPLY;
+    /// @notice Whether or not this token restricts claiming to EOA addresses
+    bool public immutable ONLY_EOA;
+    /// @notice The time the claim starts
+    uint256 public immutable START_TIME;
+    /// @notice The ideal end time for the claim period. Actual end time depends
+    ///         on rate of claims.
+    uint256 public immutable TARGET_END_TIME;
+    /// @notice The ideal duration of the claim period. Actual duration depends
+    ///         on the rate of claims.
+    uint256 public immutable TARGET_DURATION;
+    /// @notice The number of seconds that comprise a discrete "time period"
+    ///         according to the VRGDA algorithm.
+    uint256 public immutable TIME_UNIT_SECONDS;
+    /// @notice The number of seconds used to calculate the TARGET_WAD_TOKENS_PER_BLOCK
+    uint256 public immutable BLOCK_TIME_SECONDS;
+    /// @dev The ideal number of tokens that should be claimed per block, if
+    ///      claims are constant according to issuance schedule. Scaled by 1e18.
+    uint256 public immutable TARGET_WAD_TOKENS_PER_BLOCK;
+
+    /// @notice A mapping tracking whether or not an address has claimed tokens
+    mapping(address claimer => bool claimed) public claimed;
+    /// @dev Token name
+    string _name;
+    /// @dev Token symbol
+    string _symbol;
 
     constructor(LinearEBRC20ConstructorParams memory params)
         LinearVRGDA(
